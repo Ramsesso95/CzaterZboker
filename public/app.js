@@ -5,6 +5,51 @@
   const statusEl = document.getElementById('status');
   const dotEl = document.getElementById('dot');
 
+      // Dynamically create a wrapper with an image panel if not already present
+      const chatEl = document.querySelector('.chat');
+      if (chatEl && !document.querySelector('.chat-wrapper')) {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'chat-wrapper';
+        const imageWindow = document.createElement('div');
+        imageWindow.className = 'image-window';
+        const imgEl = document.createElement('img');
+        imgEl.id = 'side-image';
+        imgEl.alt = 'Image';
+        imageWindow.appendChild(imgEl);
+        chatEl.parentNode.insertBefore(wrapper, chatEl);
+        wrapper.appendChild(imageWindow);
+        wrapper.appendChild(chatEl);
+      }
+      // Set image source based on URL query parameter (?image=<filename>)
+      const sideImgEl = document.getElementById('side-image');
+
+      // Periodically update the side image from the server
+      async function updateSideImage() {
+        try {
+          const res = await fetch('/api/zero-image', { cache: 'no-store' });
+          const data = await res.json();
+          if (data && data.image) {
+            const newSrc = `images/${data.image}`;
+            if (!sideImgEl.src.endsWith(data.image)) {
+              sideImgEl.src = newSrc;
+            }
+          }
+        } catch (err) {
+          console.error('Failed to update side image', err);
+        }
+      }
+      if (typeof sideImgEl !== 'undefined') {
+        updateSideImage();
+        setInterval(updateSideImage, 1000);
+      }
+      if (sideImgEl) {
+        const params = new URLSearchParams(window.location.search);
+        const file = params.get('image');
+        if (file) {
+          sideImgEl.src = `images/${file}`;
+        }
+      }
+
   let meOffset = 0;
   let themOffset = 0;
   let meBuffer = '';

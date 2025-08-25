@@ -13,6 +13,19 @@ app.use((req,res,next)=>{
   next();
 });
 app.use(express.static(path.join(__dirname, 'public'), { cacheControl: false, etag: false, lastModified: false }));
+app.use('/images', express.static(path.join(__dirname, 'images'), { cacheControl: false, etag: false, lastModified: false }));
+
+// Endpoint zwracający pierwszy plik z katalogu images zaczynający się od '0'
+const IMAGES_DIR = path.join(__dirname, 'images');
+app.get('/api/zero-image', async (req, res) => {
+  try {
+    const files = await fs.promises.readdir(IMAGES_DIR);
+    const zeroFiles = files.filter(name => name.startsWith('0')).sort();
+    res.json({ image: zeroFiles.length > 0 ? zeroFiles[0] : null });
+  } catch (err) {
+    res.status(500).json({ error: 'Failed to read images directory' });
+  }
+});
 
 const INPUT_OUT_PATH = path.join(__dirname, 'input');
 const INPUT_CHAT_PATH = path.join(__dirname, 'inputCHAT');
